@@ -27,7 +27,7 @@ setup(
     extras_require={
         'tests': TEST_REQUIRES,
     },
-    license='BSD',
+    license='MIT',
     tests_require=TEST_REQUIRES,
     install_requires=INSTALL_REQUIRES,
     test_suite='tests',
