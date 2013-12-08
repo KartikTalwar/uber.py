@@ -16,7 +16,7 @@ app_state = client.request_pickup(Vehicles.UberX, '182 Howard St, San Francisco'
 >> app_state.ride
 ...
 
-# pick outside your window and see the taxi
+# peek outside your window and see your taxi
 ```
 
 Rationale
