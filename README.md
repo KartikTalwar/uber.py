@@ -9,8 +9,9 @@ uber.py - a Python client for Uber
 
 Usage example:
 ```python
-from uber import UberClient, geolocate
-client = UberClient('tal@test.org', 'my_token')
+from uber import UberClient, UberCarType
+token = UberClient.login('tal@test.org', 'my_password')
+client = UberClient('tal@test.org', token)
 app_state = client.request_pickup(Vehicles.UberX, '182 Howard St, San Francisco')
 >> app_state.ride
 ...
@@ -20,28 +21,28 @@ app_state = client.request_pickup(Vehicles.UberX, '182 Howard St, San Francisco'
 
 Rationale
 ---------
-Right now we're in this weird stage where we have services that are insanely popular right now, yet lack even the most
+Right now we're in this weird stage where we have services that are insanely popular, yet lack even the most
 basic of APIs.
 
-That kinda sucks. Lets change that.
+That kinda sucks. Let'ss change that.
 
-This library strives to act as a reference for other libraries, and expose as much functionality of the api as possible.
+This library strives to act as a reference for other libraries, and expose as much functionality of the API as possible.
 
 Design
 ------
-Uber's clients are mostly stateless - for every request done against the server, it always return the FULL STATE of the
+Uber's clients are mostly stateless - for every request done against the server, Uber always returns the FULL STATE of the
 app, with things like "what to put in the bottom bar", "is there a ride in progress" etc.
 
-Since this is a Python library, and will typically be used in server/cli environments, things that would normally be
+Since this is a Python library, and will typically be used in server/CLI environments, things that would normally be
 queried by external systems (GPS location) are passed EXPLICITLY as arguments, rather than being queried via some callback.
 Sadly it makes the API less convenient to use.
 
-It would be really cool to have "pleasant" client on top of this low-level one (eg have add_credit_card() return the payment
+It would be really cool to have a "pleasant" client on top of this low-level one (e.g. have add_credit_card() return the payment
 profile rather than the whole state, etc). Pull-requests are welcome :)
 
 Supported features
 ----------------------------
-- Order & cancel a ride.
+- Order and cancel a ride
 - Add/remove credit/debit cards
 - See the drivers in the area
 
@@ -62,7 +63,7 @@ Usage
 
 Examples
 --------
-- examples/ubercli.py: a fairly complete example that shows you how to ping the area, getting a ride and cancelling it.
+- examples/ubercli.py: a fairly complete example that shows you how to ping, get a ride and cancel it.
 
 
 Authenticating a user
@@ -114,8 +115,8 @@ geo_address = geolocate('182 Howard St, San Francisco')
 app_state = client.request_pickup(Vehicles.UberX,  geo_address)
 ```
 
-Cancelling
-----------
+Canceling
+---------
 ```python
 client.cancel_pickup()
 ```
@@ -137,8 +138,8 @@ state = client.add_payment('1111222233334444', '01', '99', '123', '94111', 'US')
 client.delete_payment_profile(123456)
 ```
 
-Checking for surge
-------------------
+Checking for surge rates
+------------------------
 ```python
 for view in state.city.vehicle_views.values():
     if view.surge:
@@ -169,8 +170,8 @@ A: I've written a library for Lyft, but I'm sitting on it for now as I want to g
 to get banned from Lyft).
 About the others - I honestly don't use them at all, but we'll see!
 
-Q: Anything else?
-A: I'll buy a cookie to the first person who will write a Twilio-Uber mashup that lets people order Uber using SMS.
+Q: Anything else?  
+A: I'll buy a cookie to the first person who will write a Twilio-Uber mashup that lets people order Uber with a text.
 What's cool about it is that it will allow people with feature phones to use Uber.
 I was thinking of something like:
 ```
