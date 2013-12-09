@@ -12,11 +12,8 @@ Usage example:
 from uber import UberClient, UberCarType
 token = UberClient.login('tal@test.org', 'my_password')
 client = UberClient('tal@test.org', token)
-app_state = client.request_pickup(Vehicles.UberX, '182 Howard St, San Francisco')
->> app_state.ride
-...
 
-# peek outside your window and see your taxi
+app_state = client.request_pickup(Vehicles.UberX, '182 Howard St, San Francisco')
 ```
 
 Rationale
@@ -24,7 +21,7 @@ Rationale
 Right now we're in this weird stage where we have services that are insanely popular, yet lack even the most
 basic of APIs.
 
-That kinda sucks. Let'ss change that.
+That kinda sucks. Let's change that.
 
 This library strives to act as a reference for other libraries, and expose as much functionality of the API as possible.
 
