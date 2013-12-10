@@ -175,7 +175,7 @@ class TestUberClient(unittest.TestCase):
         )
 
         self._client.request_pickup(
-            VehicleView({'id': 1}),
+            vehicle_type=VehicleView({'id': 1}),
             pickup_address={'some_geo_field': '12345'},
             gps_location=self.mock_location)
 
@@ -194,7 +194,7 @@ class TestUberClient(unittest.TestCase):
         )
 
         self._client.request_pickup(
-            VehicleView({'id': 1}),
+            vehicle_type=VehicleView({'id': 1}),
             pickup_address='some address',
             gps_location=self.mock_location)
 
@@ -207,7 +207,7 @@ class TestUberClient(unittest.TestCase):
 
         with self.assertRaises(UberLocationNotFound):
             self._client.request_pickup(
-                VehicleView({'id': 1}),
+                vehicle_type=VehicleView({'id': 1}),
                 pickup_address='some address',
                 gps_location=self.mock_location)
 
@@ -230,7 +230,7 @@ class TestUberClient(unittest.TestCase):
         )
 
         self._client.request_pickup(
-            111,
+            vehicle_type=111,
             pickup_address='some address',
             payment_profile=555,
             gps_location=self.mock_location)
@@ -254,7 +254,7 @@ class TestUberClient(unittest.TestCase):
         )
 
         self._client.request_pickup(
-            VehicleView({'id': 111}),
+            vehicle_type=VehicleView({'id': 111}),
             pickup_address='some address',
             payment_profile=PaymentProfile({'id': 555}),
             gps_location=self.mock_location)

@@ -4,7 +4,7 @@ from os import path
 import shlex
 import signal
 import time
-from uber import UberClient, geolocate, UberCarType, ClientStatus
+from uber import UberClient, geolocate, ClientStatus
 from uber.model_base import Model, StringField
 import sys
 
@@ -145,7 +145,7 @@ class UberCli(Cmd):
             signal.signal(signal.SIGINT, signal.SIG_DFL)
 
         signal.signal(signal.SIGINT, handle_abort)
-        self._client.request_pickup(UberCarType.UBERX, location)
+        self._client.request_pickup(location)
 
         print_state = True
         last_status = None

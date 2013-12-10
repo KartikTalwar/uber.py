@@ -9,11 +9,11 @@ uber.py - a Python client for Uber
 
 Usage example:
 ```python
-from uber import UberClient, UberCarType
+from uber import UberClient
 token = UberClient.login('tal@test.org', 'my_password')
 client = UberClient('tal@test.org', token)
 
-app_state = client.request_pickup(Vehicles.UberX, '182 Howard St, San Francisco')
+app_state = client.request_pickup('182 Howard St, San Francisco')
 ```
 
 Rationale
@@ -107,9 +107,9 @@ app_state = client.ping()
 Getting a ride
 --------------
 ```python
-from uber import geolocate
+from uber import geolocate, UberVehicleType
 geo_address = geolocate('182 Howard St, San Francisco')
-app_state = client.request_pickup(Vehicles.UberX,  geo_address)
+app_state = client.request_pickup(geo_address, UberVehicleType.UBERX)
 ```
 
 Canceling

@@ -15,7 +15,7 @@ class GPSLocation(object):
         self.horizontal_accuracy = horizontal_accuracy
 
 
-class UberCarType(object):
+class UberVehicleType(object):
     """
     The "fixed" Uber car types. Provided for convenience.
     On occasion Uber will add new car types (kitty car, ice cream truck etc). You can see all car types by examining

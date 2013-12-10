@@ -8,7 +8,7 @@ import requests
 import random
 from uber import settings
 from uber import geolocation
-from uber.models import AppState, PaymentProfile, VehicleView, Place, SimpleLocation
+from uber.models import AppState, PaymentProfile, VehicleView, Place, SimpleLocation, UberVehicleType
 
 
 class UberClient(object):
@@ -24,20 +24,6 @@ class UberClient(object):
         }
 
         self._session = requests.session()
-
-    def _validate_message_response(self, data):
-        """
-        checks the message response for errors and raise exceptions accordingly
-        """
-        if data['messageType'] == 'Error':
-            raise UberException(data['description'], error_code=data.get('errorCode'))
-
-    def _validate_http_response(self, response):
-        """
-        checks http response for errors and raise exceptions accordingly
-        """
-        if not response.ok:
-            raise UberException(response.text, response.status_code)
 
     @classmethod
     def login(cls, email, password):
@@ -56,6 +42,114 @@ class UberClient(object):
 
         response = uber_client._send_message(MessageTypes.LOGIN, params=data)
         return response['token']
+
+    def delete_payment_profile(self, payment_profile):
+        """
+        deletes a payment profile
+        """
+        if isinstance(payment_profile, PaymentProfile):
+            payment_profile = payment_profile.id
+
+        url = '/payment_profiles/{}'.format(payment_profile)
+        params = {
+            'token': self._token,
+            '_LOCALE_': 'en',
+            'epoch': get_epoch(),
+        }
+
+        return self._api_command(ApiMethods.DELETE, url, params)
+
+    def add_payment(self, card_number, expiration_month, expiration_year, cvv, zipcode, billing_country_iso2="US"):
+        """
+        add a credit card to Uber.
+
+        """
+
+        import braintree
+        bt = braintree.Braintree(settings.BRAINTREE_PRODUCTION_KEY)
+
+        url = '/payment_profiles'
+        params = {
+            'card_number': bt.encrypt(card_number),
+
+            # interestingly enough, these 3 are available unencrypted in the payments_profiles
+            'card_expiration_month': bt.encrypt(expiration_month),
+            'card_expiration_year': bt.encrypt(expiration_year),
+            'billing_zip': str(zipcode),
+
+            'card_code': bt.encrypt(str(cvv)),
+            'billing_country_iso2': billing_country_iso2,
+            'use_case': 'personal',
+            'token': self._token,
+            '_LOCALE_': 'en',
+            'epoch': get_epoch(),
+        }
+
+        return self._api_command(ApiMethods.POST, url, params)
+
+    def nearby_places(self, query, location):
+        """
+        queries uber for nearby locations. Currently powered by foursquare
+        """
+        params = {
+            'searchTypes': ['places'],
+            'query': query
+        }
+
+        response = self._send_message(MessageTypes.LOCATION_SEARCH, params=params, location=location)
+        return [Place(x) for x in response['places']]
+
+    def ping(self, location):
+        """
+        'pings' uber and returns the state of the world. (nearby cars, pricing etc)
+        """
+        return AppState(self._send_message(MessageTypes.PING_CLIENT, location=location))
+
+    def request_pickup(self, pickup_address, vehicle_type=UberVehicleType.UBERX, gps_location=None, payment_profile=None, use_credits=True):
+        """
+        request an uber pickup.
+
+        Args:
+            - vehicle_type: an id or a VehicleView instance of the ride you want
+            - pickup_address: geo-coded location or a string (if you're feeling frisky!)
+            - current_location: gps coords
+            - payment_profile: (optional) a payment profile id or an instance of PaymentProfile
+
+        Returns:
+            - app_state
+
+        To examine ride status, check the following:
+        """
+        if isinstance(vehicle_type, VehicleView):
+            vehicle_type = vehicle_type.id
+
+        if isinstance(payment_profile, PaymentProfile):
+            payment_profile = payment_profile.id
+
+        if isinstance(pickup_address, basestring):
+            search_result = geolocation.geolocate(pickup_address)
+            if not search_result:
+                raise UberLocationNotFound(u"Can't find location " + unicode(pickup_address))
+
+            pickup_address = search_result[0]
+
+        params = {
+            'pickupLocation': pickup_address,
+            'useCredits': use_credits,
+            'vehicleViewId': int(vehicle_type),
+        }
+
+        if payment_profile:
+            params['paymentProfileId'] = int(payment_profile)
+
+        response = self._send_message('Pickup', params=params, location=gps_location)
+        return AppState(response)
+
+    def cancel_pickup(self, location=None):
+        """
+        cancels current ride
+        """
+        return AppState(self._send_message('PickupCanceledClient', location=location))
 
     def _post(self, endpoint, data):
         """
@@ -122,6 +216,20 @@ class UberClient(object):
 
         self._post('http://events.uber.com/mobile/event/', data=data)
 
+    def _validate_message_response(self, data):
+        """
+        checks the message response for errors and raise exceptions accordingly
+        """
+        if data['messageType'] == 'Error':
+            raise UberException(data['description'], error_code=data.get('errorCode'))
+
+    def _validate_http_response(self, response):
+        """
+        checks http response for errors and raise exceptions accordingly
+        """
+        if not response.ok:
+            raise UberException(response.text, response.status_code)
+
     @classmethod
     def _copy_location_for_message(cls, location, data):
         """
@@ -159,114 +267,6 @@ class UberClient(object):
         error = result['apiResponse'].get('error')
         if error:
             raise UberException(error['message'], error['statusCode'])
-
-    def delete_payment_profile(self, payment_profile):
-        """
-        deletes a payment profile
-        """
-        if isinstance(payment_profile, PaymentProfile):
-            payment_profile = payment_profile.id
-
-        url = '/payment_profiles/{}'.format(payment_profile)
-        params = {
-            'token': self._token,
-            '_LOCALE_': 'en',
-            'epoch': get_epoch(),
-        }
-
-        return self._api_command(ApiMethods.DELETE, url, params)
-
-    def add_payment(self, card_number, expiration_month, expiration_year, cvv, zipcode, billing_country_iso2="US"):
-        """
-        add a credit card to Uber.
-
-        """
-
-        import braintree
-        bt = braintree.Braintree(settings.BRAINTREE_PRODUCTION_KEY)
-
-        url = '/payment_profiles'
-        params = {
-            'card_number': bt.encrypt(card_number),
-
-            # interestingly enough, these 3 are available unencrypted in the payments_profiles
-            'card_expiration_month': bt.encrypt(expiration_month),
-            'card_expiration_year': bt.encrypt(expiration_year),
-            'billing_zip': str(zipcode),
-
-            'card_code': bt.encrypt(str(cvv)),
-            'billing_country_iso2': billing_country_iso2,
-            'use_case': 'personal',
-            'token': self._token,
-            '_LOCALE_': 'en',
-            'epoch': get_epoch(),
-        }
-
-        return self._api_command(ApiMethods.POST, url, params)
-
-    def nearby_places(self, query, location):
-        """
-        queries uber for nearby locations. Currently powered by foursquare
-        """
-        params = {
-            'searchTypes': ['places'],
-            'query': query
-        }
-
-        response = self._send_message(MessageTypes.LOCATION_SEARCH, params=params, location=location)
-        return [Place(x) for x in response['places']]
-
-    def ping(self, location):
-        """
-        'pings' uber and returns the state of the world. (nearby cars, pricing etc)
-        """
-        return AppState(self._send_message(MessageTypes.PING_CLIENT, location=location))
-
-    def request_pickup(self, vehicle_type, pickup_address, gps_location=None, payment_profile=None, use_credits=True):
-        """
-        request an uber pickup.
-
-        Args:
-            - vehicle_type: an id or a VehicleView instance of the ride you want
-            - pickup_address: geo-coded location or a string (if you're feeling frisky!)
-            - current_location: gps coords
-            - payment_profile: (optional) a payment profile id or an instance of PaymentProfile
-
-        Returns:
-            - app_state
-
-        To examine ride status, check the following:
-        """
-        if isinstance(vehicle_type, VehicleView):
-            vehicle_type = vehicle_type.id
-
-        if isinstance(payment_profile, PaymentProfile):
-            payment_profile = payment_profile.id
-
-        if isinstance(pickup_address, basestring):
-            search_result = geolocation.geolocate(pickup_address)
-            if not search_result:
-                raise UberLocationNotFound(u"Can't find location " + unicode(pickup_address))
-
-            pickup_address = search_result[0]
-
-        params = {
-            'pickupLocation': pickup_address,
-            'useCredits': use_credits,
-            'vehicleViewId': int(vehicle_type),
-        }
-
-        if payment_profile:
-            params['paymentProfileId'] = int(payment_profile)
-
-        response = self._send_message('Pickup', params=params, location=gps_location)
-        return AppState(response)
-
-    def cancel_pickup(self, location=None):
-        """
-        cancels current ride
-        """
-        return AppState(self._send_message('PickupCanceledClient', location=location))
 
 
 def hash_password(password):
