@@ -147,7 +147,10 @@ class UberCli(Cmd):
 
         def handle_abort(*args):
             abort_signal.append(None)
+            print ''
+            print 'cancelling ride...'
             self._client.cancel_pickup()
+            print 'ride cancelled.'
             signal.signal(signal.SIGINT, signal.SIG_DFL)
 
         signal.signal(signal.SIGINT, handle_abort)
