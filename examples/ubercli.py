@@ -4,62 +4,58 @@ from os import path
 import shlex
 import signal
 import time
-from uber import UberClient, geolocate, ClientStatus
+from uber import UberClient, geolocate, ClientStatus, UberException
 from uber.model_base import Model, StringField
 import sys
 
-
-class CliState(Model):
-    FILENAME = path.join(path.expanduser('~'), '.ubercli.json')
-
-    username = StringField('username', writeable=True)
-    token = StringField('token', writeable=True, optional=True)
-
-    def __init__(self):
-        super(CliState, self).__init__()
-        self.load()
-
-    def load(self):
-        if path.exists(self.FILENAME):
-            self._data = json.load(open(self.FILENAME))
-        else:
-            self._data = {}
-
-    def save(self):
-        json.dump(self._data, open(self.FILENAME, 'w'))
-
+def exempt_login(func):
+    func.exempt_login = True
+    return func
 
 class UberCli(Cmd):
     def __init__(self):
         Cmd.__init__(self)
         self._state = CliState()
+        self._client = None
         self.setup_client()
+
+        if self._client:
+            print 'logged in as ' + self._state.username
 
     def setup_client(self):
         if self._state.token:
             self._client = UberClient(self._state.username, self._state.token)
 
-    def do_login(self, args):
+    @exempt_login
+    def do_login(self, username, password):
         """
         Logs into Uber.
         usage: login <email> <password>
         """
-        username, password = shlex.split(args)
-        token = UberClient.login(username, password)
-        self._state.username = username
-        self._state.token = token
-        self._state.save()
+        try:
+            token = UberClient.login(username, password)
+            self._state.username = username
+            self._state.token = token
+            self._state.save()
 
-        self.setup_client()
-        print 'login ok'
+            self.setup_client()
+            print 'login ok'
+        except UberException as e:
+            print e.description
 
-    def do_logout(self, args):
+    @exempt_login
+    def do_logout(self):
         """
         Log out of Uber (just deletes the token)
+
+        usage: logout
         """
         self._state.token = None
         self._state.save()
+        self._state = None
+        print 'Cleared access token'
 
+    @exempt_login
     def do_lookup(self, address):
         """
         Looks up an address
@@ -69,13 +65,12 @@ class UberCli(Cmd):
         for entry in result:
             print entry['formatted_address']
 
-    def do_add_credit_card(self, args):
+    def do_add_credit_card(self, creditcard, month, year, cvv, zipcode):
         """
         Adds a credit card to Uber
         usage: add_credit_card <creditcard> <month> <year> <cvv> <zipcode>
         """
-        cc_number, month, year, cvv, zipcode = shlex.split(args)
-        result = self._client.add_payment(cc_number, month, year, cvv, zipcode)
+        result = self._client.add_payment(creditcard, month, year, cvv, zipcode)
         print result
 
     def do_ping(self, address_str):
@@ -83,7 +78,13 @@ class UberCli(Cmd):
         shows you what taxis are close to you.
         Usage: ping <address>
         """
+        if not address_str:
+            print
+
         results = geolocate(address_str)
+        if not results:
+            print 'address not found :('
+            return
 
         geodecoded_address = results[0]
 
@@ -120,21 +121,26 @@ class UberCli(Cmd):
             print 'address not found :('
             return
 
-        for i in xrange(len(results)):
-            entry = results[i]
-            print '{index}) {entry}'.format(
-                index=i + 1,
-                entry=entry['formatted_address']
-            )
+        if len(results) == 1:
+            geo_address = results[0]
+        else:
+            for i in xrange(len(results)):
+                entry = results[i]
+                print '{index}) {entry}'.format(
+                    index=i + 1,
+                    entry=entry['formatted_address']
+                )
 
-        selection_num = int(raw_input('address # (0 to abort): ') or 0)
-        if not selection_num:
-            return
+            print ''
 
-        selection = results[selection_num - 1]
+            selection_num = int(raw_input('choose address# (0 to abort)> ') or 0)
+            if not selection_num:
+                return
 
-        print 'booking UberX for {}...'.format(selection['formatted_address'])
-        self._book_ride(selection)
+            geo_address = results[selection_num - 1]
+
+        print 'booking UberX for {}...'.format(geo_address['formatted_address'])
+        self._book_ride(geo_address)
 
     def _book_ride(self, location):
         abort_signal = []
@@ -176,13 +182,105 @@ class UberCli(Cmd):
 
             time.sleep(1)
 
-    def do_experiments(self, args):
+    def do_experiments(self):
         """
         print uber's running experiments
         """
         state = self._client.ping(None)
         for experiment in state.client.active_experiments.values():
             print '{name} ({group})'.format(name=experiment.name, group=experiment.treatment_group_name)
+
+    @exempt_login
+    def do_exit(self):
+        exit()
+
+    do_bye = do_exit
+
+    def onecmd(self, line):
+        """
+        Interpret the argument as though it had been typed in response
+        to the prompt.
+        """
+        if line == 'EOF' :
+            exit()
+
+        built_in_functions = ['help']
+        cmd, arg, line = self.parseline(line)
+
+        if not line:
+            return self.emptyline()
+
+        if cmd is None:
+            return self.default(line)
+
+        self.lastcmd = line
+        if cmd == '':
+            return self.default(line)
+
+        try:
+            func = getattr(self, 'do_' + cmd)
+        except AttributeError:
+            return self.default(line)
+
+        if cmd in built_in_functions:
+            return func(arg)
+
+        if getattr(func, 'exempt_login', False) is False and not self._client:
+            print '''login required. type 'login <user> <password>' to login'''
+            return
+
+        arg_count = func.func_code.co_argcount - 1
+
+        # if one arg, just give the string as-is
+        if arg_count == 1:
+            if not arg:
+                print get_usage(func)
+                return
+
+            return func(arg)
+
+        else:
+            # split to various args
+            split_args = shlex.split(arg)
+            if len(split_args) != arg_count:
+                print get_usage(func)
+                return
+
+            return func(*split_args)
+
+
+class CliState(Model):
+    """
+    keeps track of username & token
+    """
+    FILENAME = path.join(path.expanduser('~'), '.ubercli.json')
+
+    username = StringField('username', writeable=True)
+    token = StringField('token', writeable=True, optional=True)
+
+    def __init__(self):
+        super(CliState, self).__init__()
+        self.load()
+
+    def load(self):
+        if path.exists(self.FILENAME):
+            self._data = json.load(open(self.FILENAME))
+        else:
+            self._data = {}
+
+    def save(self):
+        json.dump(self._data, open(self.FILENAME, 'w'))
+
+def get_usage(func):
+    if not func.__doc__:
+        return ''
+
+    all_lines = [x.strip() for x in func.__doc__.split('\n')]
+    for i in xrange(len(all_lines)):
+        if all_lines[i].lower().startswith('usage:'):
+            return '\n'.join(all_lines[i:])
+
+    return '\n'.join(all_lines)
 
 if __name__ == '__main__':
     print "Welcome to UberCLI! Type 'help' for help"
