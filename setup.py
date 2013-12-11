@@ -32,6 +32,11 @@ setup(
     install_requires=INSTALL_REQUIRES,
     test_suite='tests',
     include_package_data=True,
+    entry_points={
+        'console_scripts': [
+            'ubercli = examples.ubercli:main',
+        ]
+    },
     classifiers=[
         'Intended Audience :: Developers',
         'Operating System :: OS Independent',

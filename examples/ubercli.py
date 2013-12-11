@@ -8,9 +8,14 @@ from uber import UberClient, geolocate, ClientStatus, UberException
 from uber.model_base import Model, StringField
 import sys
 
+
 def exempt_login(func):
+    """
+    marks a command as login-free
+    """
     func.exempt_login = True
     return func
+
 
 class UberCli(Cmd):
     def __init__(self):
@@ -204,7 +209,7 @@ class UberCli(Cmd):
         Interpret the argument as though it had been typed in response
         to the prompt.
         """
-        if line == 'EOF' :
+        if line == 'EOF':
             exit()
 
         built_in_functions = ['help']
@@ -274,6 +279,7 @@ class CliState(Model):
     def save(self):
         json.dump(self._data, open(self.FILENAME, 'w'))
 
+
 def get_usage(func):
     if not func.__doc__:
         return ''
@@ -285,7 +291,11 @@ def get_usage(func):
 
     return '\n'.join(all_lines)
 
-if __name__ == '__main__':
+
+def main():
     print "Welcome to UberCLI! Type 'help' for help"
     cli = UberCli()
     cli.cmdloop()
+
+if __name__ == '__main__':
+    main()
