@@ -1,8 +1,8 @@
-"hey, I really wish I had uber.py..."  
-"OK, here you go"
 
 uber.py - a Python client for Uber
 ----------------------------------
+[![ubercli](http://tals.github.io/uber.py/images/ubercli.gif)](https://github.com/tals/uber.py/blob/master/examples/ubercli.py)
+
 
 [![Build Status](https://secure.travis-ci.org/tals/uber.py.png?branch=master)](http://travis-ci.org/tals/uber.py)
 
