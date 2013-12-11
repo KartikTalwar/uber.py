@@ -28,15 +28,24 @@
 
     <div class="container">
       <section id="main_content">
-        <p>"hey, I really wish I had uber.py..."<br>
-"OK, here you go"</p>
+      <a href="https://github.com/tals/uber.py">
+        <img src="images/ubercli.gif">
+      </a>
 
 <h2>
 <a name="uberpy---a-python-client-for-uber" class="anchor" href="#uberpy---a-python-client-for-uber"><span class="octicon octicon-link"></span></a>uber.py - a Python client for Uber</h2>
 
-<p><a href="http://travis-ci.org/tals/uber.py"><img src="https://secure.travis-ci.org/tals/uber.py.png?branch=master" alt="Build Status"></a></p>
+<p>Installation:</p>
 
-<p>Usage example:</p>
+
+<pre><code>$ pip install uber.py
+</code></pre>
+
+<p>Running the CLI:</p>
+<pre><code>$ ubercli
+</code></pre>
+
+<p>library usage example:</p>
 
 <div class="highlight highlight-python"><pre><span class="kn">from</span> <span class="nn">uber</span> <span class="kn">import</span> <span class="n">UberClient</span>
 <span class="n">token</span> <span class="o">=</span> <span class="n">UberClient</span><span class="o">.</span><span class="n">login</span><span class="p">(</span><span class="s">'tal@test.org'</span><span class="p">,</span> <span class="s">'my_password'</span><span class="p">)</span>
@@ -81,11 +90,7 @@ profile rather than the whole state, etc). Pull-requests are welcome :)</p>
 <ul>
 <li>Python 2.7</li>
 <li>PyPy</li>
-</ul><h2>
-<a name="installation" class="anchor" href="#installation"><span class="octicon octicon-link"></span></a>Installation</h2>
-
-<pre><code>$ pip install uber.py
-</code></pre>
+</ul>
 
 <h1>
 <a name="usage" class="anchor" href="#usage"><span class="octicon octicon-link"></span></a>Usage</h1>
