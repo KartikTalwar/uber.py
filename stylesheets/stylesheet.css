@@ -46,7 +46,7 @@ header {
 header h1 {
   font-size: 30px;
   line-height: 1.5;
-  margin: 0 0 0 -40px;
+  margin: 0;
   font-weight: bold;
   font-family: Monaco, "Bitstream Vera Sans Mono", "Lucida Console", Terminal, monospace;
   color: #b5e853;
@@ -57,15 +57,16 @@ header h1 {
   -webkit-font-smoothing: antialiased;
 }
 
-header h1:before {
-  content: "./ ";
-  font-size: 24px;
-}
 
-header h2 {
+header h2, header h2 a{
   font-size: 18px;
   font-weight: 300;
   color: #666;
+}
+
+header h2 a {
+  text-shadow: none;
+  text-decoration: none; 
 }
 
 #downloads .btn {
@@ -244,4 +245,12 @@ a {
 
 .cf {
   zoom:1;
+}
+
+/* style and pad the gif a bit so it will look like a part of the page */
+.animgif-hack {
+  background: black;
+  padding-right: 120px;
+  border: 1px
+  solid rgba(255, 255, 255, 0.15)
 }

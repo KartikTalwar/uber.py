@@ -16,7 +16,7 @@
     <header>
       <div class="container">
         <h1>Uber.py</h1>
-        <h2>Python client for Uber</h2>
+        <h2>Python client for <a href="https://www.uber.com">Uber</a></h2>
 
         <section id="downloads">
           <a href="https://github.com/tals/uber.py/zipball/master" class="btn">Download as .zip</a>
@@ -29,11 +29,8 @@
     <div class="container">
       <section id="main_content">
       <a href="https://github.com/tals/uber.py">
-        <img src="images/ubercli.gif">
+        <img src="images/ubercli.gif" class="animgif-hack">
       </a>
-
-<h2>
-<a name="uberpy---a-python-client-for-uber" class="anchor" href="#uberpy---a-python-client-for-uber"><span class="octicon octicon-link"></span></a>uber.py - a Python client for Uber</h2>
 
 <p>Installation:</p>
 
@@ -115,7 +112,7 @@ profile rather than the whole state, etc). Pull-requests are welcome :)</p>
 <div class="highlight highlight-python"><pre><span class="n">client</span> <span class="o">=</span> <span class="n">UberClient</span><span class="p">(</span><span class="s">'tal@test.org'</span><span class="p">,</span> <span class="s">'my_token'</span><span class="p">)</span>
 <span class="n">app_state</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">ping</span><span class="p">()</span>
 
-<span class="o">&gt;&gt;&gt;</span> <span class="k">print</span> <span class="n">app_state</span><span class="o">.</span><span class="n">nearby_vehicles</span><span class="p">[</span><span class="n">UberCarType</span><span class="o">.</span><span class="n">UBERX</span><span class="p">]</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="k">print</span> <span class="n">app_state</span><span class="o">.</span><span class="n">nearby_vehicles</span><span class="p">[</span><span class="n">UberVehicleType</span><span class="o">.</span><span class="n">UBERX</span><span class="p">]</span>
 <span class="o">&lt;</span><span class="k">class</span> <span class="err">'</span><span class="nc">uber</span><span class="o">.</span><span class="n">models</span><span class="o">.</span><span class="n">NearbyVehicles</span><span class="s">'&gt;</span>
     <span class="n">vehicle_paths</span><span class="p">:</span> <span class="p">{</span>
         <span class="n">d2c0de3b</span><span class="o">-</span><span class="mi">907</span><span class="n">f</span><span class="o">-</span><span class="mi">49</span><span class="n">a4</span><span class="o">-</span><span class="mi">8</span><span class="n">be8</span><span class="o">-</span><span class="mi">756</span><span class="n">b8a2049bd</span><span class="p">:</span>   <span class="p">[</span>
