@@ -1,4 +1,3 @@
-
 uber.py - a Python client for [Uber]
 ------------------------------------
 [![ubercli](http://tals.github.io/uber.py/images/ubercli.gif)](https://github.com/tals/uber.py/blob/master/examples/ubercli.py)
@@ -18,8 +17,7 @@ app_state = client.request_pickup('182 Howard St, San Francisco')
 
 Rationale
 ---------
-Right now we're in this weird stage where we have services that are insanely popular, yet lack even the most
-basic of APIs.
+[Uber] is the largest, most popular ride service around, yet we're in this weird stage where we have services that are insanely popular, yet lack even the most basic of APIs.
 
 That kinda sucks. Let's change that.
 
