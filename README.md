@@ -1,6 +1,6 @@
 
-uber.py - a Python client for Uber
-----------------------------------
+uber.py - a Python client for [Uber]
+------------------------------------
 [![ubercli](http://tals.github.io/uber.py/images/ubercli.gif)](https://github.com/tals/uber.py/blob/master/examples/ubercli.py)
 
 
@@ -180,3 +180,5 @@ I was thinking of something like:
 >> cancel
 << ride has been cancelled.
 ```
+
+[Uber]: https://www.uber.com/
